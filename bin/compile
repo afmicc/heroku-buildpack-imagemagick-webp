@@ -5,6 +5,7 @@ CACHE_DIR=$2
 
 IMAGE_MAGICK_VERSION="7.0.7-39"
 LIBWEBP_VERSION="1.0.3"
+LIBJASPER_VERSION="2.0.6"
 
 VENDOR_DIR="$BUILD_DIR/vendor"
 INSTALL_DIR="$VENDOR_DIR/imagemagick-webp"
@@ -17,6 +18,24 @@ if [ ! -f $CACHE_FILE ]; then
 # if true; then
 
   cd $BUILD_DIR
+
+  # install jasper
+
+  LIBJASPER_FILE="jasper-$LIBJASPER_VERSION.tar.gz"
+  LIBJASPER_DIR="jasper-$LIBJASPER_VERSION"
+  LIBJASPER_URL="https://www.ece.uvic.ca/~frodo/jasper/software/$LIBJASPER_FILE"
+
+  echo "-----> Downloading jasper from $LIBJASPER_URL"
+  curl -L --silent $LIBJASPER_URL | tar xz
+
+  echo "-----> Building jasper"
+  cd $LIBJASPER_DIR
+  # export LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
+  cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR
+  make && make install
+  cd ..
+  rm -rf $LIBJASPER_DIR
+  # unset LDFLAGS
 
   # install libwebp
 
@@ -65,7 +84,7 @@ if [ ! -f $CACHE_FILE ]; then
   export CPPFLAGS="-I$INSTALL_DIR/include"
   export LDFLAGS="-L$INSTALL_DIR/lib"
 
-  ./configure --prefix=$INSTALL_DIR --with-webp=yes --with-gvc=no --with-quantum-depth=8 --disable-static
+  ./configure --prefix=$INSTALL_DIR --with-webp=yes --with-gvc=no --with-jp2=yes --with-quantum-depth=8 --disable-static
   make && make install
   cd ..
   rm -rf $IMAGE_MAGICK_DIR
